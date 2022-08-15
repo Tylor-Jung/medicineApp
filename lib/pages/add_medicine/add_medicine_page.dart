@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app_project/components/app_constants.dart';
 import 'package:app_project/components/app_page_route.dart';
 import 'package:app_project/pages/add_medicine/add_alram_page.dart';
+import 'package:app_project/pages/components/app_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -164,23 +165,17 @@ class PickImageBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: pagePadding,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextButton(
-              onPressed: onPressedCamera,
-              child: const Text('카메라로 촬영'),
-            ),
-            TextButton(
-              onPressed: onPressedGallary,
-              child: const Text('앨범에서 가져오기'),
-            ),
-          ],
+    return BottomSheetBody(
+      children: [
+        TextButton(
+          onPressed: onPressedCamera,
+          child: const Text('카메라로 촬영'),
         ),
-      ),
+        TextButton(
+          onPressed: onPressedGallary,
+          child: const Text('앨범에서 가져오기'),
+        ),
+      ],
     );
   }
 }

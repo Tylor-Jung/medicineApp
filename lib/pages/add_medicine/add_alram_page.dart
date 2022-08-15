@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:app_project/components/app_colors.dart';
 import 'package:app_project/components/app_constants.dart';
 import 'package:app_project/pages/add_medicine/add_medicine_page.dart';
+import 'package:app_project/pages/components/app_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -70,7 +72,61 @@ class AlramBox extends StatelessWidget {
             style: TextButton.styleFrom(
               textStyle: Theme.of(context).textTheme.subtitle2,
             ),
-            onPressed: () {},
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (builder) {
+                  return BottomSheetBody(
+                    children: [
+                      SizedBox(
+                        height: 200,
+                        child: CupertinoDatePicker(
+                          onDateTimeChanged: (dateTime) {},
+                          mode: CupertinoDatePickerMode.time,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: regularSpace,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: submitButtonHeight,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  textStyle:
+                                      Theme.of(context).textTheme.subtitle1,
+                                  primary: Colors.white,
+                                  onPrimary: AppColors.primaryColor,
+                                ),
+                                onPressed: () {},
+                                child: Text('취소'),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: smallSpace,
+                          ),
+                          Expanded(
+                            child: SizedBox(
+                              height: submitButtonHeight,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    textStyle:
+                                        Theme.of(context).textTheme.subtitle1),
+                                onPressed: () {},
+                                child: Text('선택'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  );
+                },
+              );
+            },
             child: const Text('20:00'),
           ),
         ),
