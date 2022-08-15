@@ -1,9 +1,13 @@
 import 'dart:io';
 
 import 'package:app_project/components/app_constants.dart';
+import 'package:app_project/components/app_page_route.dart';
+import 'package:app_project/pages/add_medicine/add_alram_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../components/add_page_widget.dart';
 
 class AddMedicinePage extends StatefulWidget {
   const AddMedicinePage({Key? key}) : super(key: key);
@@ -14,6 +18,7 @@ class AddMedicinePage extends StatefulWidget {
 
 class _AddMedicinePageState extends State<AddMedicinePage> {
   final _nameController = TextEditingController();
+  File? _medicineImage;
 
   @override
   void dispose() {
@@ -27,62 +32,62 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
       appBar: AppBar(
         leading: const CloseButton(),
       ),
-      body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: pagePadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '어떤 약입니까?',
-                  style: Theme.of(context).textTheme.headline4,
-                ),
-                const SizedBox(
-                  height: largeSpace,
-                ),
-                const Center(
-                  child: MedicineImageButton(),
-                ),
-                const SizedBox(
-                  height: largeSpace + regularSpace,
-                ),
-                Text(
-                  '약 이름',
-                  style: Theme.of(context).textTheme.subtitle1,
-                ),
-                TextFormField(
-                  controller: _nameController,
-                  maxLength: 20,
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.done,
-                  style: Theme.of(context).textTheme.bodyText1,
-                  decoration: InputDecoration(
-                    hintText: '복용할 약 이름을 기입해주세요.',
-                    hintStyle: Theme.of(context).textTheme.bodyText2,
-                    contentPadding: textFieldContentPadding,
-                  ),
-                ),
-              ],
+      body: SingleChildScrollView(
+        child: AddPageBody(
+          children: [
+            Text(
+              '어떤 약입니까?',
+              style: Theme.of(context).textTheme.headline4,
             ),
-          ),
+            const SizedBox(
+              height: largeSpace,
+            ),
+            Center(
+              child: MedicineImageButton(
+                changeImageFile: (File? value) {
+                  _medicineImage = value;
+                },
+              ),
+            ),
+            const SizedBox(
+              height: largeSpace + regularSpace,
+            ),
+            Text(
+              '약 이름',
+              style: Theme.of(context).textTheme.subtitle1,
+            ),
+            TextFormField(
+              controller: _nameController,
+              maxLength: 20,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.done,
+              style: Theme.of(context).textTheme.bodyText1,
+              decoration: InputDecoration(
+                hintText: '복용할 약 이름을 기입해주세요.',
+                hintStyle: Theme.of(context).textTheme.bodyText2,
+                contentPadding: textFieldContentPadding,
+              ),
+              // onChanged버튼이 변화를 감지하고 활성, 비활성 여부가 됨
+              onChanged: (_) {
+                setState(() {});
+              },
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: submitButtonBoxPadding,
-          child: SizedBox(
-            height: submitButtonHeight,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                  textStyle: Theme.of(context).textTheme.subtitle1),
-              child: Text('다음'),
-            ),
-          ),
+      bottomNavigationBar: BottomSubmitButton(
+          onPressed: _nameController.text.isEmpty ? null : _onAddAlramPage,
+          text: '다음'),
+    );
+  }
+
+  void _onAddAlramPage() {
+    Navigator.push(
+      context,
+      FadePageRoute(
+        page: AddAlarmPage(
+          MedicineImage: _medicineImage,
+          medicineName: _nameController.text,
         ),
       ),
     );
@@ -90,7 +95,11 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
 }
 
 class MedicineImageButton extends StatefulWidget {
-  const MedicineImageButton({Key? key}) : super(key: key);
+  const MedicineImageButton({Key? key, required this.changeImageFile})
+      : super(key: key);
+
+// ValueChanged : 자식이 가지고 있는 데이터를 바깥으로 전달하는 방법
+  final ValueChanged<File?> changeImageFile;
 
   @override
   State<MedicineImageButton> createState() => _MedicineImageButtonState();
@@ -136,6 +145,7 @@ class _MedicineImageButtonState extends State<MedicineImageButton> {
         if (xfile != null) {
           setState(() {
             _pickedImage = File(xfile.path);
+            widget.changeImageFile(_pickedImage);
           });
         }
         Navigator.maybePop(context);
