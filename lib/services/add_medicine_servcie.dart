@@ -12,7 +12,7 @@ class AddMedicineService with ChangeNotifier {
 
   void addNowAlarm() {
     final now = DateTime.now();
-    final nowTime = DateFormat('hh:mm').format(now);
+    final nowTime = DateFormat('HH:mm').format(now);
     _alarms.add(nowTime);
     notifyListeners();
   }
@@ -25,7 +25,7 @@ class AddMedicineService with ChangeNotifier {
   void setAlarm({required String prevTime, required DateTime setTime}) {
     _alarms.remove(prevTime);
 
-    final setTimeStr = DateFormat('hh:mm').format(setTime);
+    final setTimeStr = DateFormat('HH:mm').format(setTime);
     _alarms.add(setTimeStr);
     notifyListeners();
   }

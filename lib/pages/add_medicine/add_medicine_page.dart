@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:app_project/components/app_constants.dart';
 import 'package:app_project/components/app_page_route.dart';
 import 'package:app_project/pages/add_medicine/add_alram_page.dart';
-import 'package:app_project/pages/components/app_widgets.dart';
+import 'package:app_project/components/app_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -141,17 +141,19 @@ class _MedicineImageButtonState extends State<MedicineImageButton> {
   }
 
   void _onPressed(ImageSource source) {
-    ImagePicker().pickImage(source: source).then(
-      (xfile) {
-        if (xfile != null) {
-          setState(() {
-            _pickedImage = File(xfile.path);
-            widget.changeImageFile(_pickedImage);
-          });
-        }
-        Navigator.maybePop(context);
-      },
-    );
+    ImagePicker().pickImage(source: source).then((xfile) {
+      if (xfile != null) {
+        setState(() {
+          _pickedImage = File(xfile.path);
+          widget.changeImageFile(_pickedImage);
+        });
+      }
+      Navigator.maybePop(context);
+    }).onError((error, stackTrace) {
+      // shwo setting
+      Navigator.pop(context);
+      showPermissionDenied(context, permission: '카메라 및 갤러리 접근');
+    });
   }
 }
 

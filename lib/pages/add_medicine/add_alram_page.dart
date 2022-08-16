@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:app_project/components/app_colors.dart';
 import 'package:app_project/components/app_constants.dart';
+import 'package:app_project/main.dart';
 import 'package:app_project/pages/add_medicine/add_medicine_page.dart';
-import 'package:app_project/pages/components/app_widgets.dart';
+import 'package:app_project/components/app_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../services/add_medicine_servcie.dart';
 import '../components/add_page_widget.dart';
@@ -48,7 +50,25 @@ class AddAlarmPage extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: BottomSubmitButton(
-        onPressed: () {},
+        onPressed: () async {
+          bool result = false;
+
+          // 작업 예정 목록
+          // 1. add alarm
+          for (var alarm in service.alarms) {
+            result = await notification.addNotifcication(
+              alarmTimeStr: alarm,
+              title: '$alarm 약 먹을 시간이예요!',
+              body: '$medicineName 복약했다고 알려주세요!',
+            );
+            if (!result) {
+              showPermissionDenied(context, permission: '알람');
+            }
+          }
+
+          // 2. save image  (local dir)
+          // 3. add medicine model data (local DB, hive)
+        },
         text: '완료',
       ),
     );
