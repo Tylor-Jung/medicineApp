@@ -87,7 +87,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
       context,
       FadePageRoute(
         page: AddAlarmPage(
-          MedicineImage: _medicineImage,
+          medicineImage: _medicineImage,
           medicineName: _nameController.text,
         ),
       ),
