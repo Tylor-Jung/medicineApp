@@ -17,7 +17,7 @@ class MedicineHistoryAdapter extends TypeAdapter<MedicineHistory> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return MedicineHistory(
-      medicineid: fields[0] as int,
+      medicineId: fields[0] as int,
       alarmTime: fields[1] as String,
       takeTime: fields[2] as DateTime,
     );
@@ -28,7 +28,7 @@ class MedicineHistoryAdapter extends TypeAdapter<MedicineHistory> {
     writer
       ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.medicineid)
+      ..write(obj.medicineId)
       ..writeByte(1)
       ..write(obj.alarmTime)
       ..writeByte(2)

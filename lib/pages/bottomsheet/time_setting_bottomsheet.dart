@@ -16,7 +16,10 @@ class TimeSettingBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initialDateTime = DateFormat('HH:mm').parse(initialTime);
+    final initialTimeData = DateFormat('HH:mm').parse(initialTime);
+    final now = DateTime.now();
+    final initialDateTime = DateTime(now.year, now.month, now.day,
+        initialTimeData.hour, initialTimeData.minute);
     DateTime setDateTime = initialDateTime;
 
     return BottomSheetBody(
@@ -46,7 +49,7 @@ class TimeSettingBottomSheet extends StatelessWidget {
                     onPrimary: AppColors.primaryColor,
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: Text('취소'),
+                  child: const Text('취소'),
                 ),
               ),
             ),
@@ -60,10 +63,9 @@ class TimeSettingBottomSheet extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                       textStyle: Theme.of(context).textTheme.subtitle1),
                   onPressed: () {
-                    
                     Navigator.pop(context, setDateTime);
                   },
-                  child: Text('선택'),
+                  child: const Text('선택'),
                 ),
               ),
             ),

@@ -5,12 +5,12 @@ part 'medicine_history.g.dart';
 @HiveType(typeId: 2)
 class MedicineHistory extends HiveObject {
   MedicineHistory({
-    required this.medicineid,
+    required this.medicineId,
     required this.alarmTime,
     required this.takeTime,
   });
   @HiveField(0)
-  final int medicineid;
+  final int medicineId;
 
   @HiveField(1)
   final String alarmTime;
@@ -20,7 +20,7 @@ class MedicineHistory extends HiveObject {
 
   @override
   String toString() {
-    return '{medicineid: $medicineid, alarmTime: $alarmTime, takeTime: $takeTime,}';
+    return '{medicineid: $medicineId, alarmTime: $alarmTime, takeTime: $takeTime,}';
   }
 }
 

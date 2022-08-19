@@ -5,34 +5,34 @@ import 'package:app_project/repositories/app_hive.dart';
 import 'package:hive/hive.dart';
 
 class MedicineHistoryRepository {
-  Box<MedicineHistory>? _HistoryBox;
+  Box<MedicineHistory>? _historyBox;
 
-  Box<MedicineHistory> get HistoryBox {
-    _HistoryBox ??= Hive.box<MedicineHistory>(AppHiveBox.medicineHistory);
-    return _HistoryBox!;
+  Box<MedicineHistory> get historyBox {
+    _historyBox ??= Hive.box<MedicineHistory>(AppHiveBox.medicineHistory);
+    return _historyBox!;
   }
 
   void addHistory(MedicineHistory history) async {
-    int key = await HistoryBox.add(history);
+    int key = await historyBox.add(history);
 
     log('[addHistory] add (key:$key) $history');
-    log('result ${HistoryBox.values.toList()}');
+    log('result ${historyBox.values.toList()}');
   }
 
   void deleteHistory(int key) async {
-    await HistoryBox.delete(key);
+    await historyBox.delete(key);
 
     log('[deleteHistory] delete (key:$key)');
-    log('result ${HistoryBox.values.toList()}');
+    log('result ${historyBox.values.toList()}');
   }
 
   void updateHistory({
     required int key,
     required MedicineHistory history,
   }) async {
-    await HistoryBox.put(key, history);
+    await historyBox.put(key, history);
 
     log('[updateHistory] update (key:$key) $history');
-    log('result ${HistoryBox.values.toList()}');
+    log('result ${historyBox.values.toList()}');
   }
 }
