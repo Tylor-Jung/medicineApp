@@ -1,5 +1,6 @@
 import 'package:app_project/pages/home_page.dart';
 import 'package:app_project/repositories/app_hive.dart';
+import 'package:app_project/repositories/medicine_history_repository%20.dart';
 import 'package:app_project/repositories/medicine_repository.dart';
 import 'package:app_project/services/app_notification_service.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:app_project/components/app_themes.dart';
 final notification = AppNotificationService();
 final hive = AppHive();
 final medicineRepository = MedicineRepository();
+final historyRepository = MedicineHistoryRepository();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

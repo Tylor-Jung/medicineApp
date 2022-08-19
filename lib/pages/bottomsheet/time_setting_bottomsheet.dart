@@ -1,0 +1,75 @@
+import 'package:app_project/components/app_colors.dart';
+import 'package:app_project/components/app_constants.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../../components/app_widgets.dart';
+
+class TimeSettingBottomSheet extends StatelessWidget {
+  const TimeSettingBottomSheet({
+    Key? key,
+    required this.initialTime,
+  }) : super(key: key);
+
+  final String initialTime;
+
+  @override
+  Widget build(BuildContext context) {
+    final initialDateTime = DateFormat('HH:mm').parse(initialTime);
+    DateTime setDateTime = initialDateTime;
+
+    return BottomSheetBody(
+      children: [
+        SizedBox(
+          height: 200,
+          child: CupertinoDatePicker(
+            onDateTimeChanged: (dateTime) {
+              setDateTime = dateTime;
+            },
+            mode: CupertinoDatePickerMode.time,
+            initialDateTime: initialDateTime,
+          ),
+        ),
+        const SizedBox(
+          height: regularSpace,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: submitButtonHeight,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    textStyle: Theme.of(context).textTheme.subtitle1,
+                    primary: Colors.white,
+                    onPrimary: AppColors.primaryColor,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('취소'),
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: smallSpace,
+            ),
+            Expanded(
+              child: SizedBox(
+                height: submitButtonHeight,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      textStyle: Theme.of(context).textTheme.subtitle1),
+                  onPressed: () {
+                    
+                    Navigator.pop(context, setDateTime);
+                  },
+                  child: Text('선택'),
+                ),
+              ),
+            ),
+          ],
+        )
+      ],
+    );
+  }
+}

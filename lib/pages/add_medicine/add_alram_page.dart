@@ -6,6 +6,7 @@ import 'package:app_project/main.dart';
 import 'package:app_project/models/medicine.dart';
 import 'package:app_project/pages/add_medicine/add_medicine_page.dart';
 import 'package:app_project/components/app_widgets.dart';
+import 'package:app_project/pages/bottomsheet/time_setting_bottomsheet.dart';
 import 'package:app_project/services/app_file_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -141,89 +142,19 @@ class AlarmBox extends StatelessWidget {
               showModalBottomSheet(
                 context: context,
                 builder: (builder) {
-                  return TimePickerBottomSheet(
-                    initialTime: time,
-                    service: service,
-                  );
+                  return TimeSettingBottomSheet(initialTime: time);
                 },
-              );
+              ).then((value) {
+                if (value == null || value is! DateTime) return;
+                service.setAlarm(
+                  prevTime: time,
+                  setTime: value,
+                );
+              });
             },
             child: Text(time),
           ),
         ),
-      ],
-    );
-  }
-}
-
-// ignore: must_be_immutable
-class TimePickerBottomSheet extends StatelessWidget {
-  TimePickerBottomSheet({
-    Key? key,
-    required this.initialTime,
-    required this.service,
-  }) : super(key: key);
-
-  final String initialTime;
-  final AddMedicineService service;
-  DateTime? _setDateTime;
-
-  @override
-  Widget build(BuildContext context) {
-    final initialDateTime = DateFormat('HH:mm').parse(initialTime);
-
-    return BottomSheetBody(
-      children: [
-        SizedBox(
-          height: 200,
-          child: CupertinoDatePicker(
-            onDateTimeChanged: (dateTime) {
-              _setDateTime = dateTime;
-            },
-            mode: CupertinoDatePickerMode.time,
-            initialDateTime: initialDateTime,
-          ),
-        ),
-        const SizedBox(
-          height: regularSpace,
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: submitButtonHeight,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    textStyle: Theme.of(context).textTheme.subtitle1,
-                    primary: Colors.white,
-                    onPrimary: AppColors.primaryColor,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('취소'),
-                ),
-              ),
-            ),
-            const SizedBox(
-              width: smallSpace,
-            ),
-            Expanded(
-              child: SizedBox(
-                height: submitButtonHeight,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      textStyle: Theme.of(context).textTheme.subtitle1),
-                  onPressed: () {
-                    service.setAlarm(
-                        prevTime: initialTime,
-                        setTime: _setDateTime ?? initialDateTime);
-                    Navigator.pop(context);
-                  },
-                  child: Text('선택'),
-                ),
-              ),
-            ),
-          ],
-        )
       ],
     );
   }

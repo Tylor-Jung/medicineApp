@@ -22,7 +22,7 @@ class MedicineRepository {
   void deleteMedicine(int key) async {
     await medicineBox.delete(key);
 
-    log('[addMedicine] delete (key:$key)');
+    log('[deleteMedicine] delete (key:$key)');
     log('result ${medicineBox.values.toList()}');
   }
 
@@ -32,7 +32,7 @@ class MedicineRepository {
   }) async {
     await medicineBox.put(key, medicine);
 
-    log('[addMedicine] update (key:$key) $medicine');
+    log('[updateMedicine] update (key:$key) $medicine');
     log('result ${medicineBox.values.toList()}');
   }
 
@@ -40,5 +40,4 @@ class MedicineRepository {
     final lastId = medicineBox.values.isEmpty ? 0 : medicineBox.values.last.id;
     return lastId + 1;
   }
-
 }

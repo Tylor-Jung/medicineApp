@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:app_project/components/app_constants.dart';
 import 'package:app_project/main.dart';
 import 'package:app_project/models/medicine_alarm.dart';
+import 'package:app_project/pages/bottomsheet/time_setting_bottomsheet.dart';
 import 'package:app_project/pages/today/today_empty_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../models/medicine.dart';
+import '../../models/medicine_history.dart';
 
 class TodayPage extends StatelessWidget {
   const TodayPage({Key? key}) : super(key: key);
@@ -115,7 +117,28 @@ class MedicinListTile extends StatelessWidget {
                     Text('${medicineAlarm.name},', style: textStyle),
                     TileActionButton(onTap: () {}, title: '지금'),
                     Text('|', style: textStyle),
-                    TileActionButton(onTap: () {}, title: '아까'),
+                    TileActionButton(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => TimeSettingBottomSheet(
+                                initialTime: medicineAlarm.alarmTime),
+                          ).then((takeDateTime) {
+                            if (takeDateTime == null ||
+                                takeDateTime is! DateTime) {
+                              return;
+                            }
+
+                            historyRepository.addHistory(
+                              MedicineHistory(
+                                medicineid: medicineAlarm.id,
+                                alarmTime: medicineAlarm.alarmTime,
+                                takeTime: takeDateTime,
+                              ),
+                            );
+                          });
+                        },
+                        title: '아까'),
                     Text('먹었어요!', style: textStyle),
                   ],
                 )
