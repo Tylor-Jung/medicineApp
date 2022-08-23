@@ -2,8 +2,11 @@ import 'dart:io';
 
 import 'package:app_project/components/app_constants.dart';
 import 'package:app_project/components/app_page_route.dart';
+import 'package:app_project/main.dart';
+import 'package:app_project/models/medicine.dart';
 import 'package:app_project/pages/add_medicine/add_alram_page.dart';
 import 'package:app_project/components/app_widgets.dart';
+import 'package:app_project/pages/bottomsheet/pick_image_bottomesheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,15 +14,40 @@ import 'package:image_picker/image_picker.dart';
 import '../components/add_page_widget.dart';
 
 class AddMedicinePage extends StatefulWidget {
-  const AddMedicinePage({Key? key}) : super(key: key);
+  const AddMedicinePage({
+    Key? key,
+    this.updateMedicineId = -1,
+  }) : super(key: key);
+
+  final int updateMedicineId;
 
   @override
   State<AddMedicinePage> createState() => _AddMedicinePageState();
 }
 
 class _AddMedicinePageState extends State<AddMedicinePage> {
-  final _nameController = TextEditingController();
+  late TextEditingController _nameController;
   File? _medicineImage;
+
+  bool get _isUpdate => widget.updateMedicineId != -1;
+  Medicine get _isUpdateMedicine =>
+      medicineRepository.medicineBox.values.singleWhere(
+        (medicined) => medicined.id == widget.updateMedicineId,
+      );
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (_isUpdate) {
+      _nameController = TextEditingController(text: _isUpdateMedicine.name);
+      if (_isUpdateMedicine.imagePath != null) {
+        _medicineImage = File(_isUpdateMedicine.imagePath!);
+      }
+    } else {
+      _nameController = TextEditingController();
+    }
+  }
 
   @override
   void dispose() {
@@ -37,14 +65,15 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
         child: AddPageBody(
           children: [
             Text(
-              '어떤 약입니까?',
+              '어떤 약이예요?',
               style: Theme.of(context).textTheme.headline4,
             ),
             const SizedBox(
               height: largeSpace,
             ),
             Center(
-              child: MedicineImageButton(
+              child: _MedicineImageButton(
+                updateImage: _medicineImage,
                 changeImageFile: (File? value) {
                   _medicineImage = value;
                 },
@@ -87,6 +116,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
       context,
       FadePageRoute(
         page: AddAlarmPage(
+          updateMedicineId: widget.updateMedicineId,
           medicineImage: _medicineImage,
           medicineName: _nameController.text,
         ),
@@ -95,19 +125,27 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
   }
 }
 
-class MedicineImageButton extends StatefulWidget {
-  const MedicineImageButton({Key? key, required this.changeImageFile})
+class _MedicineImageButton extends StatefulWidget {
+  const _MedicineImageButton(
+      {Key? key, required this.changeImageFile, this.updateImage})
       : super(key: key);
 
 // ValueChanged : 자식이 가지고 있는 데이터를 바깥으로 전달하는 방법
   final ValueChanged<File?> changeImageFile;
+  final File? updateImage;
 
   @override
-  State<MedicineImageButton> createState() => _MedicineImageButtonState();
+  State<_MedicineImageButton> createState() => _MedicineImageButtonState();
 }
 
-class _MedicineImageButtonState extends State<MedicineImageButton> {
+class _MedicineImageButtonState extends State<_MedicineImageButton> {
   File? _pickedImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _pickedImage = widget.updateImage;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,30 +192,5 @@ class _MedicineImageButtonState extends State<MedicineImageButton> {
       Navigator.pop(context);
       showPermissionDenied(context, permission: '카메라 및 갤러리 접근');
     });
-  }
-}
-
-class PickImageBottomSheet extends StatelessWidget {
-  const PickImageBottomSheet(
-      {Key? key, required this.onPressedCamera, required this.onPressedGallary})
-      : super(key: key);
-
-  final VoidCallback onPressedCamera;
-  final VoidCallback onPressedGallary;
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomSheetBody(
-      children: [
-        TextButton(
-          onPressed: onPressedCamera,
-          child: const Text('카메라로 촬영'),
-        ),
-        TextButton(
-          onPressed: onPressedGallary,
-          child: const Text('앨범에서 가져오기'),
-        ),
-      ],
-    );
   }
 }

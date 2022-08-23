@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:app_project/components/app_constants.dart';
 import 'package:app_project/components/app_page_route.dart';
 import 'package:app_project/models/medicine_alarm.dart';
+import 'package:app_project/pages/add_medicine/add_medicine_page.dart';
+import 'package:app_project/pages/bottomsheet/more_action_bottomesheet.dart';
 import 'package:app_project/pages/bottomsheet/time_setting_bottomsheet.dart';
 import 'package:app_project/pages/today/image_detail_tile.dart';
-import 'package:app_project/pages/today/today_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../main.dart';
 import '../../models/medicine_history.dart';
@@ -26,7 +28,9 @@ class BeforeTakeTile extends StatelessWidget {
 
     return Row(
       children: [
-        _MedicineImageButton(medicineAlarm: medicineAlarm),
+        MedicineImageButton(
+          imagePath: medicineAlarm.imagePath,
+        ),
         const SizedBox(width: smallSpace),
         Expanded(
           child: Column(
@@ -47,33 +51,49 @@ class BeforeTakeTile extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text('${medicineAlarm.name},', style: textStyle),
-          TileActionButton(onTap: () {}, title: '지금'),
-          Text('|', style: textStyle),
           TileActionButton(
               onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => TimeSettingBottomSheet(
-                      initialTime: medicineAlarm.alarmTime),
-                ).then((takeDateTime) {
-                  if (takeDateTime == null || takeDateTime is! DateTime) {
-                    return;
-                  }
-
-                  historyRepository.addHistory(
-                    MedicineHistory(
-                      medicineId: medicineAlarm.id,
-                      alarmTime: medicineAlarm.alarmTime,
-                      takeTime: takeDateTime,
-                    ),
-                  );
-                });
+                historyRepository.addHistory(
+                  MedicineHistory(
+                    medicineId: medicineAlarm.id,
+                    medicineKey: medicineAlarm.key,
+                    alarmTime: medicineAlarm.alarmTime,
+                    takeTime: DateTime.now(),
+                    imagePath: medicineAlarm.imagePath,
+                    name: medicineAlarm.name,
+                  ),
+                );
               },
-              title: '아까'),
+              title: '지금'),
+          Text('|', style: textStyle),
+          TileActionButton(onTap: () => _onPreviousTake(context), title: '아까'),
           Text('먹었어요!', style: textStyle),
         ],
       )
     ];
+  }
+
+  void _onPreviousTake(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) =>
+          TimeSettingBottomSheet(initialTime: medicineAlarm.alarmTime),
+    ).then((takeDateTime) {
+      if (takeDateTime == null || takeDateTime is! DateTime) {
+        return;
+      }
+
+      historyRepository.addHistory(
+        MedicineHistory(
+          medicineId: medicineAlarm.id,
+          medicineKey: medicineAlarm.key,
+          alarmTime: medicineAlarm.alarmTime,
+          takeTime: takeDateTime,
+          imagePath: medicineAlarm.imagePath,
+          name: medicineAlarm.name,
+        ),
+      );
+    });
   }
 }
 
@@ -81,9 +101,11 @@ class AfterTakeTile extends StatelessWidget {
   const AfterTakeTile({
     Key? key,
     required this.medicineAlarm,
+    required this.history,
   }) : super(key: key);
 
   final MedicineAlarm medicineAlarm;
+  final MedicineHistory history;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +115,9 @@ class AfterTakeTile extends StatelessWidget {
       children: [
         Stack(
           children: [
-            _MedicineImageButton(medicineAlarm: medicineAlarm),
+            MedicineImageButton(
+              imagePath: medicineAlarm.imagePath,
+            ),
             CircleAvatar(
               radius: 40,
               backgroundColor: Colors.green.withOpacity(0.5),
@@ -124,7 +148,7 @@ class AfterTakeTile extends StatelessWidget {
           style: textStyle,
           children: [
             TextSpan(
-                text: '20:19',
+                text: takeTimeStr,
                 style: textStyle?.copyWith(fontWeight: FontWeight.w500)),
           ],
         ),
@@ -135,13 +159,49 @@ class AfterTakeTile extends StatelessWidget {
         children: [
           Text('${medicineAlarm.name},', style: textStyle),
           TileActionButton(
-            onTap: () {},
-            title: '20시 19분에',
+            onTap: () => _onTap(context),
+            title: DateFormat('HH시 mm분에').format(history.takeTime),
           ),
           Text('먹었어요!', style: textStyle),
         ],
       )
     ];
+  }
+
+  String get takeTimeStr => DateFormat('HH:mm').format(history.takeTime);
+
+  void _onTap(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => TimeSettingBottomSheet(
+        initialTime: takeTimeStr,
+        submitTitle: '수정',
+        bottomWidget: TextButton(
+          onPressed: () {
+            historyRepository.deleteHistory(history.key);
+            Navigator.pop(context);
+          },
+          child: Text('복약 시간을 지우고 싶어요.',
+              style: Theme.of(context).textTheme.bodyText2),
+        ),
+      ),
+    ).then((takeDateTime) {
+      if (takeDateTime == null || takeDateTime is! DateTime) {
+        return;
+      }
+
+      historyRepository.updateHistory(
+        key: history.key,
+        history: MedicineHistory(
+          medicineId: medicineAlarm.id,
+          medicineKey: medicineAlarm.key,
+          alarmTime: medicineAlarm.alarmTime,
+          takeTime: takeDateTime,
+          imagePath: medicineAlarm.imagePath,
+          name: medicineAlarm.name,
+        ),
+      );
+    });
   }
 }
 
@@ -157,41 +217,88 @@ class _MoreButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoButton(
         onPressed: () {
-          medicineRepository.deleteMedicine(medicineAlarm.key);
+          showModalBottomSheet(
+            context: context,
+            builder: (context) => MoreActionBottomSheet(
+              onPressedModify: () {
+                Navigator.push(
+                  context,
+                  FadePageRoute(
+                    page: AddMedicinePage(updateMedicineId: medicineAlarm.id),
+                  ),
+                ).then(
+                  (_) => Navigator.maybePop(context),
+                );
+              },
+              onPressedOnlyMedicine: () {
+                // print(alarmIds);
+                // 1. 알람삭제 => id값을 먼저 알기위함
+                notification.deleteMultipleAlarm(alarmIds);
+                // 2. hive data 삭제
+                medicineRepository.deleteMedicine(medicineAlarm.key);
+                // 3, pop
+                Navigator.pop(context);
+              },
+              onPressedDeleteAll: () {
+                // 1. 알람삭제 => id값을 먼저 알기위함
+                notification.deleteMultipleAlarm(alarmIds);
+                // 2. hive history 삭제
+                historyRepository.deleteAllHistory(keys);
+                // 2. hive medicine 삭제
+                medicineRepository.deleteMedicine(medicineAlarm.key);
+                // 3, pop
+                Navigator.pop(context);
+              },
+            ),
+          );
         },
         child: const Icon(CupertinoIcons.ellipsis_vertical));
   }
+
+  List<String> get alarmIds {
+    final medicine = medicineRepository.medicineBox.values
+        .singleWhere((element) => element.id == medicineAlarm.id);
+    final alarmIds = medicine.alarms
+        .map((alarmStr) => notification.alarmId(medicineAlarm.id, alarmStr))
+        .toList();
+    return alarmIds;
+  }
+
+  Iterable<int> get keys {
+    final histories = historyRepository.historyBox.values.where((history) =>
+        history.medicineId == medicineAlarm.id &&
+        history.medicineKey == medicineAlarm.key);
+    final keys = histories.map((e) => e.key as int);
+    return keys;
+  }
 }
 
-class _MedicineImageButton extends StatelessWidget {
-  const _MedicineImageButton({
+class MedicineImageButton extends StatelessWidget {
+  const MedicineImageButton({
     Key? key,
-    required this.medicineAlarm,
+    required this.imagePath,
   }) : super(key: key);
 
-  final MedicineAlarm medicineAlarm;
+  final String? imagePath;
 
   @override
   Widget build(BuildContext context) {
     return CupertinoButton(
       padding: EdgeInsets.zero,
-      onPressed: medicineAlarm.imagePath == null
+      onPressed: imagePath == null
           ? null
           : () {
               Navigator.push(
                 context,
                 FadePageRoute(
-                  page: ImageDetailPage(medicineAlarm: medicineAlarm),
+                  page: ImageDetailPage(imagePath: imagePath!),
                 ),
               );
             },
       child: CircleAvatar(
         radius: 40,
-        foregroundImage: medicineAlarm.imagePath == null
-            ? null
-            : FileImage(
-                File(medicineAlarm.imagePath!),
-              ),
+        foregroundImage: imagePath == null ? null : FileImage(File(imagePath!)),
+        child: imagePath == null ? const Icon(CupertinoIcons.alarm_fill) : null,
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:app_project/repositories/medicine_repository.dart';
 import 'package:app_project/services/app_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:app_project/components/app_themes.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 final notification = AppNotificationService();
 final hive = AppHive();
@@ -14,6 +15,7 @@ final historyRepository = MedicineHistoryRepository();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await initializeDateFormatting();
   await notification.initializeTimeZone();
   await notification.initializeNotification();
 
@@ -30,7 +32,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: AppThemes.lightTheme,
-      home: const homePage(),
+      home: const HomePage(),
       builder: (context, child) => MediaQuery(
         child: child!,
         data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),

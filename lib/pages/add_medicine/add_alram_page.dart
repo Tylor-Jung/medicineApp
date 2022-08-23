@@ -1,32 +1,33 @@
 import 'dart:io';
 
-import 'package:app_project/components/app_colors.dart';
 import 'package:app_project/components/app_constants.dart';
 import 'package:app_project/main.dart';
 import 'package:app_project/models/medicine.dart';
-import 'package:app_project/pages/add_medicine/add_medicine_page.dart';
 import 'package:app_project/components/app_widgets.dart';
 import 'package:app_project/pages/bottomsheet/time_setting_bottomsheet.dart';
 import 'package:app_project/services/app_file_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../services/add_medicine_servcie.dart';
 import '../components/add_page_widget.dart';
 
+// ignore: must_be_immutable
 class AddAlarmPage extends StatelessWidget {
   AddAlarmPage({
     Key? key,
     required this.medicineImage,
     required this.medicineName,
-  }) : super(key: key);
+    required this.updateMedicineId,
+  }) : super(key: key) {
+    service = AddMedicineService(updateMedicineId);
+  }
 
+  final int updateMedicineId;
   final File? medicineImage;
   final String medicineName;
 
-  final service = AddMedicineService();
+  late AddMedicineService service;
 
   @override
   Widget build(BuildContext context) {
@@ -54,43 +55,107 @@ class AddAlarmPage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomSubmitButton(
         onPressed: () async {
-          bool result = false;
+          final isUpdate = updateMedicineId != -1;
 
-          // 1. add alarm
-          for (var alarm in service.alarms) {
-            result = await notification.addNotifcication(
-              medicineId: medicineRepository.newId,
-              alarmTimeStr: alarm,
-              title: '$alarm 약 먹을 시간이예요!',
-              body: '$medicineName 복약했다고 알려주세요!',
-            );
-          }
-
-          if (!result) {
-            return showPermissionDenied(context, permission: '알람');
-          }
-
-          // 2. save image  (local dir)
-          String? imageFilePath;
-          if (medicineImage != null) {
-            imageFilePath = await saveImageToLocalDirectory(medicineImage!);
-          }
-
-          // 3. add medicine model data (local DB, hive)
-          final medicine = Medicine(
-            id: medicineRepository.newId,
-            name: medicineName,
-            imagePath: imageFilePath,
-            alarms: service.alarms.toList(),
-          );
-          medicineRepository.addMedicine(medicine);
-
-          Navigator.popUntil(context, (route) => route.isFirst);
+          isUpdate
+              ? await _onUpdateMedicine(context)
+              : await _onAddMedidine(context);
         },
         text: '완료',
       ),
     );
   }
+
+  Future<void> _onAddMedidine(context) async {
+    bool result = false;
+
+    // 1. add alarm
+    for (var alarm in service.alarms) {
+      result = await notification.addNotifcication(
+        medicineId: medicineRepository.newId,
+        alarmTimeStr: alarm,
+        title: '$alarm 약 먹을 시간이예요!',
+        body: '$medicineName 복약했다고 알려주세요!',
+      );
+    }
+
+    if (!result) {
+      return showPermissionDenied(context, permission: '알람');
+    }
+
+    // 2. save image  (local dir)
+    String? imageFilePath;
+    if (medicineImage != null) {
+      imageFilePath = await saveImageToLocalDirectory(medicineImage!);
+    }
+
+    // 3. add medicine model data (local DB, hive)
+    final medicine = Medicine(
+      id: medicineRepository.newId,
+      name: medicineName,
+      imagePath: imageFilePath,
+      alarms: service.alarms.toList(),
+    );
+    medicineRepository.addMedicine(medicine);
+
+    Navigator.popUntil(context, (route) => route.isFirst);
+  }
+
+  Future<void> _onUpdateMedicine(context) async {
+    bool result = false;
+
+    // 1-1. delete previous alarm
+    final alarmIds = _updateMedicine.alarms.map(
+      (alarmTime) => notification.alarmId(updateMedicineId, alarmTime),
+    );
+    await notification.deleteMultipleAlarm(alarmIds);
+
+    // 1-2. add alarm
+    for (var alarm in service.alarms) {
+      result = await notification.addNotifcication(
+        medicineId: updateMedicineId,
+        alarmTimeStr: alarm,
+        title: '$alarm 약 먹을 시간이예요!',
+        body: '$medicineName 복약했다고 알려주세요!',
+      );
+    }
+
+    if (!result) {
+      return showPermissionDenied(context, permission: '알람');
+    }
+
+    String? imageFilePath = _updateMedicine.imagePath;
+    if (_updateMedicine.imagePath != medicineImage?.path) {
+      // 2-1. delete previous image
+      if (_updateMedicine.imagePath != null) {
+        deleteImage(_updateMedicine.imagePath!);
+      }
+
+      // 2-2. save image  (local dir)
+      if (medicineImage != null) {
+        imageFilePath = await saveImageToLocalDirectory(medicineImage!);
+      }
+    }
+
+    // 3. update medicine (local DB, hive)
+    final medicine = Medicine(
+      id: updateMedicineId,
+      name: medicineName,
+      imagePath: imageFilePath,
+      alarms: service.alarms.toList(),
+    );
+    medicineRepository.updateMedicine(
+      key: _updateMedicine.key,
+      medicine: medicine,
+    );
+
+    Navigator.popUntil(context, (route) => route.isFirst);
+  }
+
+  Medicine get _updateMedicine =>
+      medicineRepository.medicineBox.values.singleWhere(
+        (medicined) => medicined.id == updateMedicineId,
+      );
 
   List<Widget> get alarmWidgets {
     final children = <Widget>[];

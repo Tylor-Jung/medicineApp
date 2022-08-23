@@ -1,15 +1,11 @@
-import 'dart:io';
-
 import 'package:app_project/components/app_constants.dart';
-import 'package:app_project/components/app_page_route.dart';
 import 'package:app_project/main.dart';
 import 'package:app_project/models/medicine_alarm.dart';
-import 'package:app_project/pages/bottomsheet/time_setting_bottomsheet.dart';
 import 'package:app_project/pages/today/today_empty_widget.dart';
 import 'package:app_project/pages/today/today_take_tile.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/medicine.dart';
 import '../../models/medicine_history.dart';
@@ -54,6 +50,12 @@ class TodayPage extends StatelessWidget {
       }
     }
 
+    medicineAlarms.sort(
+      (a, b) => DateFormat('HH:mm').parse(a.alarmTime).compareTo(
+            DateFormat('HH:mm').parse(b.alarmTime),
+          ),
+    );
+
     return Column(
       children: [
         const Divider(height: 1, thickness: 1.0),
@@ -89,12 +91,16 @@ class TodayPage extends StatelessWidget {
         final todayTakeHistory = historyBox.values.singleWhere(
           (history) =>
               history.medicineId == medicineAlarm.id &&
+              history.medicineKey == medicineAlarm.key &&
               history.alarmTime == medicineAlarm.alarmTime &&
               isToday(history.takeTime, DateTime.now()),
           orElse: () => MedicineHistory(
             medicineId: -1,
             alarmTime: '',
             takeTime: DateTime.now(),
+            medicineKey: -1,
+            imagePath: null,
+            name: '',
           ),
         );
 
@@ -105,6 +111,7 @@ class TodayPage extends StatelessWidget {
 
         return AfterTakeTile(
           medicineAlarm: medicineAlarm,
+          history: todayTakeHistory,
         );
       },
     );

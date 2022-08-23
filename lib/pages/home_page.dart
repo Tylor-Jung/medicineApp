@@ -7,17 +7,17 @@ import 'package:flutter/material.dart';
 
 import 'add_medicine/add_medicine_page.dart';
 
-class homePage extends StatefulWidget {
-  const homePage({Key? key}) : super(key: key);
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
 
   @override
-  State<homePage> createState() => _homePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _homePageState extends State<homePage> {
+class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   final _pages = [
-    TodayPage(),
+    const TodayPage(),
     const HistoryPage(),
   ];
 
